@@ -3,6 +3,7 @@ const { genHandle, getObj, freeObj } = require('./helpers');
 module.exports.manifest = {
   newRandomPrivate: 'promise',
   newRandomPublic: 'promise',
+  _return_object_newRandomPublic2: 'promise',
   newPrivate: 'promise',
   newPublic: 'promise',
   newPermissions: 'promise',
@@ -70,6 +71,40 @@ module.exports.newRandomPrivate = (appHandle, typeTag) => getObj(appHandle)
 module.exports.newRandomPublic = (appHandle, typeTag) => getObj(appHandle)
     .then((obj) => obj.app.mutableData.newRandomPublic(typeTag)
       .then((md) => genHandle(obj.app, md)));
+
+class MutableDataObj {
+  constructor(handle) {
+    this._handle = handle;
+  }
+
+  quickSetup(data, name, description) {
+    return window.safeMutableData.quickSetup(this._handle, data, name, description);
+  }
+};
+
+
+const marshallObj = (obj) => {
+  let obj2 = JSON.parse(JSON.stringify(obj));
+  Object.getOwnPropertyNames(Object.getPrototypeOf(obj)).map((p) => {
+    console.log("marshal attr:", obj[p].toString())
+    obj2[p] = obj[p].toString();
+  })
+  return JSON.stringify(obj2);
+}
+
+module.exports._return_object_newRandomPublic2 = (appHandle, typeTag) => {
+  console.log("FN invoked with: ", typeTag);
+  return getObj(appHandle)
+    .then((obj) => obj.app.mutableData.newRandomPublic(typeTag)
+      .then((md) => genHandle(obj.app, md))
+      .then((handle) => {
+        let mdObj = new MutableDataObj(handle);
+        let str = marshallObj(mdObj);
+        console.log("Obj serial: ", str);
+        return str;
+      })
+    );
+};
 
 /**
  * Initiate a mutuable data at the given address with private
