@@ -17,7 +17,11 @@ export const genHandle = (app, netObj, groupId) => {
     netObj, // this is null if the handle corresponds to a safeApp instance
     groupId // groupId is only set for safeApp instances
   };
-  return genObjHandle(obj);
+  const handle = genObjHandle(obj);
+  console.log("GEN: ", netObj ? "no safeApp" : "safeApp instance");
+  console.log("GEN handle: ", handle, " PageID: ", groupId);
+  console.log("Num of handles:", handles.size);
+  return handle;
 };
 
 export const replaceObj = (handle, app, netObj) => {
@@ -62,6 +66,9 @@ export const freeObj = (handle, forceCleanCache) => {
     handles.delete(handle);
     // Check if we are freeing a SAFEApp instance, if so, cascade the deletion
     // to all objects created with this SAFEApp instance.
+    console.log("FREE OBJ: ", obj.netObj ? "no safeApp" : "safeApp instance");
+    console.log("FREE handle: ", handle, " PageID: ", obj.groupId);
+    console.log("Num of handles:", handles.size);
     if (obj.netObj === null) {
       handles.forEach((value, key) => {
         if (obj.app === value.app) {
@@ -93,6 +100,7 @@ export const freeObj = (handle, forceCleanCache) => {
 };
 
 export const freePageObjs = (groupId) => {
+  console.log("FREE PAGE PageID: ", groupId);
   if (groupId !== null) {
     // Let's find all SAFEApp instances created under this groupId
     handles.forEach((value, key) => {
@@ -149,6 +157,8 @@ export const netStateCallbackHelper = (safeApp, appInfo, enableLog, groupId) => 
   }, { log: enableLog, registerScheme: false })
     .then((app) => {
       // We assign null to 'netObj' to signal this is a SAFEApp instance
+      console.log("New safeApp for PageID:", groupId);
+      console.log("New safeApp from APP: ", appInfo);
       const handle = genHandle(app, null, groupId);
       setImmediate(() => {
         readable.push([handle]);
